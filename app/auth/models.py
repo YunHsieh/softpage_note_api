@@ -54,8 +54,8 @@ class OutstandingToken(ormar.Model):
 
 class BlacklistedToken(ormar.Model):
     id: int = ormar.Integer(primary_key=True, autoincrement=True)
-    token: OutstandingToken = ormar.ForeignKey(OutstandingToken, name='title_id')
-    blacklisted_at = ormar.DateTime(auto_now_add=True)
+    token: OutstandingToken = ormar.ForeignKey(OutstandingToken, name='token_id')
+    blacklisted_at = ormar.DateTime(default=datetime.datetime.utcnow())
 
     class Meta(BaseMeta):
         db_table = 'account_black_list_token'
