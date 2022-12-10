@@ -7,6 +7,21 @@ from app.auth import login as login_views
 
 def init_routers(app):
     app.include_router(
+        soft_essay_views.router,
+        prefix='/api',
+        tags=['api', 'soft_essay'],
+        dependencies=[Depends(has_token_required)],
+        responses={418: {'description': 'Bad Request'}},
+    )
+    app.include_router(
+        beta_views.router,
+        prefix='/api',
+        tags=['api', 'test'],
+        dependencies=[Depends(has_token_required)],
+        responses={418: {'description': 'Bad Request'}},
+    )
+
+    app.include_router(
         login_views.router,
         prefix='/api',
         tags=['api', 'login'],
