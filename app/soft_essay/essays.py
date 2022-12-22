@@ -1,8 +1,12 @@
 import uuid
 
 from fastapi import Depends
-from fastapi import APIRouter, HTTPException, Request
-from app.soft_essay.base_models import Essay, Read_Essays, Query_Essays
+from fastapi import APIRouter, HTTPException
+from app.soft_essay.base_models import (
+    Create_Essay, 
+    Read_Essays, 
+    Query_Essays,
+)
 from app.soft_essay.models import (
     Softessay_Body,
     Softessay_Essay, 
@@ -30,7 +34,7 @@ async def read_essays(params: Query_Essays=Depends()):
 
 
 @router.post('/', response_model=Softessay_Essay, response_model_exclude_none=True, status_code=201)
-async def create_essay(essay: Essay, user: Auth = Depends(get_current_user)):
+async def create_essay(essay: Create_Essay, user: Auth = Depends(get_current_user)):
     async with database.transaction():
         body = essay.dict()
         body['author'] = user
@@ -53,7 +57,10 @@ async def read_essay(id: uuid.UUID):
     return instance
 
 
-@router.get('/{essay_id}/contents', response_model=list[Softessay_Body], response_model_exclude={'essay'})
+ResponseBody = Softessay_Body.get_pydantic(
+    include={'id', 'content', 'created_at', 'updated_at', 'last_version', 'essay__id'}
+)
+@router.get('/{essay_id}/contents', response_model=list[ResponseBody])
 async def read_content_by_essay(essay_id: uuid.UUID):
     instance = await Softessay_Essay.objects.get_or_none(id=essay_id)
     queryset = await Softessay_Body.objects.select_related('essay').filter(
