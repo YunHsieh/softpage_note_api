@@ -1,18 +1,20 @@
 from pydantic import BaseModel, validator
-from app.soft_essay.models import Softessay_Essay, Softessay_Topic
+from app.soft_essay.models import Softessay_Essay, Softessay_Topic, Softessay_Body
 from app.auth.models import Auth
+
+_Essay = Softessay_Essay.get_pydantic(exclude={
+    'softessay_bodys', 
+    'softessay_comments',
+})
 
 
 def validator_read_auth(data):
+    allow_fiedls = {'id', 'username', 'email'}
     if data:
-        return {k:v for k, v in data.dict().items() if k in {'id', 'username', 'email'}}
+        return {k:v for k, v in data.dict().items() if k in allow_fiedls}
 
 
-class _Essay(BaseModel):
-    __fields__ = Softessay_Essay.__fields__
-
-
-class Essay(_Essay):
+class Create_Essay(_Essay):
     title: str
     tags: list
 
@@ -29,6 +31,7 @@ class Read_Essays(_Essay):
 
     _validator_read_auth = validator('forker', allow_reuse=True)(validator_read_auth)
     _validator_read_auth = validator('author', allow_reuse=True)(validator_read_auth)
+
     @validator('title')
     def name_to_str(cls, v, values, **kwargs):
         return v.name
