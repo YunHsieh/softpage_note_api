@@ -66,7 +66,8 @@ class Softessay_Essay(ormar.Model, DateTimeFieldsMixins):
     is_published: bool = ormar.Boolean(default=True)
     is_deleted: bool = ormar.Boolean(default=False)
     order_seq: dict = ormar.JSON(default=[])
-    tags: Softessay_Tag = ormar.ManyToMany(Softessay_Tag, 
+    tags: Softessay_Tag = ormar.ManyToMany(
+        Softessay_Tag, 
         through=EssayTag, 
         through_relation_name='essay_id', 
         through_reverse_relation_name='tag_id'
