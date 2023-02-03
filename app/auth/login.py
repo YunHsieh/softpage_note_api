@@ -33,7 +33,11 @@ async def authenticate_user(email: str, password: str) -> Auth:
     return user
 
 
-async def create_access_token(user: Auth, expires_delta: datetime.timedelta | None = None):
+async def create_access_token(
+    user: Auth, 
+    extra_info = {}, 
+    expires_delta: datetime.timedelta | None = None
+) -> jwt:
     current_time = datetime.datetime.utcnow()
     # TODO: add cache
     queryset = await OutstandingToken.objects.filter(
@@ -51,13 +55,12 @@ async def create_access_token(user: Auth, expires_delta: datetime.timedelta | No
     if not expires_delta:
         expires_delta = datetime.timedelta(minutes=int(ACCESS_TOKEN_EXPIRE_MINUTES))
     to_encode |= {'exp': get_millisecond_timestamp(current_time + expires_delta)}
-    datetime_str = current_time.strftime('%y%m%d')
     # write a new jwt record
     await OutstandingToken(
         user=user,
-        jti=f'id:{datetime_str}{random.randint(1,99999):05}',
         token=jwt.encode(to_encode, SECRET_KEY),
         expires_at=current_time + expires_delta,
+        **extra_info,
     ).save()
     return jwt.encode(to_encode, SECRET_KEY)
 
