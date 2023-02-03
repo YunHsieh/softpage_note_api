@@ -28,8 +28,11 @@ class Auth(ormar.Model):
     password: str = ormar.String(max_length=128)
     first_name: str = ormar.String(max_length=150, nullable=True)
     last_name: str = ormar.String(max_length=150, nullable=True)
+    email_verified = ormar.Boolean(default=False)
+    avatar = ormar.Text(nullable=True)
     is_staff: bool = ormar.Boolean(default=False)
     is_active: bool = ormar.Boolean(default=False)
+    is_superuser: bool = ormar.Boolean(default=False)
     date_joined: datetime = ormar.DateTime(default=datetime.datetime.utcnow())
     last_login: datetime = ormar.DateTime(default=datetime.datetime.utcnow(), onupdate=datetime.datetime.utcnow())
 
@@ -37,7 +40,7 @@ class Auth(ormar.Model):
 class OutstandingToken(ormar.Model):
     id: int = ormar.Integer(primary_key=True, autoincrement=True)
     user: Auth = ormar.ForeignKey(Auth, name='user_id')
-    jti: str = ormar.String(max_length=255)
+    issuer: str = ormar.String(max_length=512)
     token = ormar.Text()
     created_at: datetime = ormar.DateTime(default=datetime.datetime.utcnow())
     expires_at = ormar.DateTime()
