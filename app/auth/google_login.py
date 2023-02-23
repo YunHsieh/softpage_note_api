@@ -9,6 +9,7 @@ from app.auth.login import create_access_token
 from fastapi.responses import RedirectResponse
 from app.stores import database
 from app.environments import (
+    CLIENT_HOST,
     GOOGLE_OAUTH_URL,
     GOOGLE_TOKEN_URL,
     GOOGLE_OAUTH_SCOPE,
@@ -25,12 +26,7 @@ router = APIRouter(
 REDIRECT_URI = 'oauth2callback'
 
 
-@router.get('/authorize')
-async def authorize():
-    return RedirectResponse(router.url_path_for(REDIRECT_URI))
-
-
-@router.get('/oauth2callback', response_model=Token)
+@router.get('/authorize', response_model=Token)
 async def oauth2callback(request: Request):
     req_args = dict(request.query_params)
     payload = {
@@ -42,8 +38,9 @@ async def oauth2callback(request: Request):
             'response_type': 'code',
             'scope': GOOGLE_OAUTH_SCOPE,
         }
-        auth_url = f'{GOOGLE_OAUTH_URL}?{"&".join(f"{k}={v}" for k, v in params.items())}'
-        return RedirectResponse(auth_url)
+        return {
+            'redirect_url': f'{GOOGLE_OAUTH_URL}?{"&".join(f"{k}={v}" for k, v in params.items())}'
+        }
     else:
         auth_code = req_args.get('code')
         data = payload | {
@@ -53,10 +50,10 @@ async def oauth2callback(request: Request):
         }
         r = requests.post(GOOGLE_TOKEN_URL, data=data)
         user_profile = jwt.get_unverified_claims(r.json()['id_token'])
-        return {
-            'access_token': await user_info(user_profile),
-            'token_type': 'bearer',
-        }
+        # TODO: the client host could be bring from the client.
+        return RedirectResponse(
+            urljoin(CLIENT_HOST, 'auth') + f'?access_token={await user_info(user_profile)}'
+        )
 
 
 async def user_info(info: dict):
