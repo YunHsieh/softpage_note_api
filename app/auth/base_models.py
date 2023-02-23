@@ -2,5 +2,6 @@ from pydantic import BaseModel
 
 
 class Token(BaseModel):
-    access_token: str
-    token_type: str
+    redirect_url: str | None
+    access_token: str | None
+    token_type: str | None
