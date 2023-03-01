@@ -61,19 +61,35 @@ class Softessay_Essay(ormar.Model, DateTimeFieldsMixins):
 
     id: uuid.UUID = ormar.UUID(primary_key=True, default=uuid.uuid4)
     title: Softessay_Topic = ormar.ForeignKey(Softessay_Topic, name='title_id')
-    version: str = ormar.String(max_length=32, nullable=True)
-    content: str = ormar.Text()
+    content: str = ormar.Text(nullable=True)
     is_published: bool = ormar.Boolean(default=True)
     is_deleted: bool = ormar.Boolean(default=False)
     order_seq: dict = ormar.JSON(default=[])
     tags: Softessay_Tag = ormar.ManyToMany(
-        Softessay_Tag, 
-        through=EssayTag, 
+        Softessay_Tag,
+        through=EssayTag,
         through_relation_name='essay_id', 
         through_reverse_relation_name='tag_id'
     )
-    forker: Auth = ormar.ForeignKey(Auth, related_name='forker', name='forker_id', nullable=True)
     author: Auth = ormar.ForeignKey(Auth, related_name='author', name='author_id')
+
+
+class Softessay_Essay_History(ormar.Model, DateTimeFieldsMixins):
+
+    class Meta(BaseMeta):
+        tablename: str = 'softessay_essay_history'
+        queryset_class = NoGetTarget
+
+    id: uuid.UUID = ormar.UUID(primary_key=True, default=uuid.uuid4)
+    essay: Softessay_Essay = ormar.ForeignKey(Softessay_Essay, name='essay_id')
+    comment: str = ormar.String(max_length=32, nullable=True)
+    description: str = ormar.Text()
+    nickname: str = ormar.String(max_length=32, nullable=True)
+    content: str = ormar.Text(nullable=True)
+    is_published: bool = ormar.Boolean(default=True)
+    is_deleted: bool = ormar.Boolean(default=False)
+    note: str = ormar.Text()
+    author: Auth = ormar.ForeignKey(Auth, related_name='history_author', name='author_id')
 
 
 class Softessay_Body(ormar.Model, DateTimeFieldsMixins):
