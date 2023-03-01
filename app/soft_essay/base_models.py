@@ -1,8 +1,11 @@
-from pydantic import BaseModel, validator
-from app.soft_essay.models import Softessay_Essay, Softessay_Topic, Softessay_Body
+from pydantic import BaseModel, validator, Field
+from app.soft_essay.models import Softessay_Essay, Softessay_Topic
 from app.auth.models import Auth
 
 _Essay = Softessay_Essay.get_pydantic(exclude={
+    # HACK: the tags and order_seq are not work.
+    # 'tags',
+    # 'order_seq',
     'softessay_bodys', 
     'softessay_comments',
 })
@@ -11,12 +14,23 @@ _Essay = Softessay_Essay.get_pydantic(exclude={
 def validator_read_auth(data):
     allow_fiedls = {'id', 'username', 'email'}
     if data:
-        return {k:v for k, v in data.dict().items() if k in allow_fiedls}
+        return {k: v for k, v in data.dict().items() if k in allow_fiedls}
+
+
+class UserInfo(Auth):
+    author: str = None
+    password: str = None
 
 
 class Create_Essay(_Essay):
-    title: str
-    tags: list
+    title: str = Field(..., min_length=1)
+    content: str = ''
+    tags: list = []
+    order_seq: list = []
+
+    author: UserInfo | None
+
+    _validator_read_auth = validator('author', allow_reuse=True)(validator_read_auth)
 
 
 class Read_Essays(_Essay):
@@ -24,12 +38,9 @@ class Read_Essays(_Essay):
         orm_mode = True
 
     title: Softessay_Topic
-    version: str
     order_seq: list
-    forker: Auth | None
     author: Auth | None
 
-    _validator_read_auth = validator('forker', allow_reuse=True)(validator_read_auth)
     _validator_read_auth = validator('author', allow_reuse=True)(validator_read_auth)
 
     @validator('title')
